@@ -1,0 +1,3 @@
+python3_nmap==1.5.0
+shodan==1.25.0
+PyInputPlus==0.2.12

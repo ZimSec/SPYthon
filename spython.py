@@ -4,7 +4,9 @@ from socketserver import ThreadingMixIn                                 # Import
 import pyinputplus as pp                                                # Import pyinputplus for validation
 import datetime                                                         # Imports date time for status updates
 import nmap3                                                            # This is for scannign through nmap
-import pprint                                                           # This is for incorporating formatted dictionaries
+import os                                                               # Imports OS for cd and command execution
+import json                                                             # For formatting json
+from shodan import Shodan                                               # For passive scanning through Shodan
 
 # SPYython Ascii Art
 asciiart=b"""
@@ -74,13 +76,33 @@ class ClientThread(Thread):                                             # Create
             # Sends data asking for the client to give an IP to scan
             s.send(bytes("\n Hello "+ip+"!\n"+"What would you like to scan?: ", 'utf-8'))
             result=s.recv(SOCKET_BUFFER_SIZE)                           # Recieves user's data and stores it
-            out = str(result.decode('utf-8').rstrip("\n"))              # Formats user's sent data
+            UserIn = str(result.decode('utf-8').rstrip("\n"))           # Formats user's sent data
             # Prints status of scan starting with datetime
-            print(datetime.datetime.now(),"\033[40m\033[1;33m[*] Scan of",out,"started for client " + ip + ":" + str(port),"\033[40m\033[0m")
+            print(datetime.datetime.now(),"\033[40m\033[1;33m[*] Active Scan of",str(UserIn),"started for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
             nm = nmap3.Nmap()                                           # Sets nm = to the nmap function
-            s.send(bytes(str(nm.scan_top_ports(out))+"\n", 'utf-16'))   # Returns scan data to user
+            nmapDict = nm.scan_top_ports(UserIn)
+            print(datetime.datetime.now(),"\033[40m\033[1;33m[+] Active Scan of",str(UserIn)," finished for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
+            json_object = json.dumps(nmapDict, indent = 4)              # Format json objects from nmapDict
+            # Sets file for active scan
+            activeScan = "ScanOutput-"+datetime.datetime.now().strftime("%Y%m%d%H%M%S")+"-Active_Scan-"+str(UserIn)+".json"
+            f = open(activeScan, "w")                                   # Open new text file for active scan
+            f.write(str(json_object))                                   # Write text file from json_object
+            f.close()                                                   # Close File
+            s.send(bytes("View file at: "+"http://"+str(TCP_IP)+":"+str(WEB_PORT)+"/"+str(activeScan)+"\n", 'utf-8'))
+
+            print(datetime.datetime.now(),"\033[40m\033[1;33m[*] Passive Scan of",str(UserIn),"started for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
+            api = Shodan(SHODAN_API_KEY)                                # Set api key
+            passiveOut = api.host(UserIn)                               # Run the shodan scan
+            print(datetime.datetime.now(),"\033[40m\033[1;33m[+] Passive Scan of",str(UserIn)," finished for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
+            json_object = json.dumps(passiveOut, indent = 4)            # Format json objects from Shodan Output
+            # Sets file for passive scan
+            passiveScan = "ScanOutput-"+datetime.datetime.now().strftime("%Y%m%d%H%M%S")+"-Passive_Scan-"+str(UserIn)+".json"
+            f = open(passiveScan, "w")                                  # Open new text file for passive scan
+            f.write(str(json_object))                                   # Write text file from json_object
+            f.close()                                                   # Close File
+            s.send(bytes("View file at: "+"http://"+str(TCP_IP)+":"+str(WEB_PORT)+"/"+str(passiveScan)+"\n", 'utf-8'))   # Returns scan data to user
             # Prints status of finished scan
-            print(datetime.datetime.now(),"\033[40m\033[1;33m[+] Scan of",out," finished and to client " + ip + ":" + str(port),"\033[40m\033[0m")
+            print(datetime.datetime.now(),"\033[40m\033[1;33m[+] Scan of",UserIn," saved to file and link was sent to client " + ip + ":" + str(port),"\033[40m\033[0m")
             s.close()                                                   # Close connection
             # Print the status of the closed connection
             print(datetime.datetime.now(),"\033[40m\033[1;31m[-] client " + ip + ":" + str(port), "left the server","\033[40m\033[0m")
@@ -90,8 +112,10 @@ class ClientThread(Thread):                                             # Create
 # TCP_PORT = 1337                                                       # Harded port 1337
 SOCKET_BUFFER_SIZE = 4096                                               # Set socket buffer size
 
-TCP_IP = pp.inputIP("Enter the server IP address: ")                    # Obtain and sanitize for the IP
-TCP_PORT = pp.inputNum(prompt='Enter server port: ', min=1, max=65353)  # Obtain and sanitize for port
+TCP_IP = pp.inputIP("Enter the SPYthon IP address: ")                    # Obtain and sanitize for the IP
+TCP_PORT = pp.inputNum(prompt='Enter the SPYthon server port: ', min=1, max=65353)  # Obtain and sanitize for Server port
+WEB_PORT = pp.inputNum(prompt='Enter the web server port: ', min=1, max=65353)      # Obtain and sanitize for Web Port
+SHODAN_API_KEY = pp.inputStr(prompt='Enter Your SHODAN API KEY: ')      # Obtain Shodan Key
 
 tcpServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)           # Creating the socket
 tcpServer.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)         # Set Socket
@@ -99,7 +123,14 @@ tcpServer.bind((TCP_IP, TCP_PORT))                                      # Bind t
 threads = []                                                            # Create a list of threads
 
 # Print Status of the connection with start datetime and server IP and Port Info
-print("\n"+str(datetime.datetime.now()),"\033[40m\033[1;34m[*]Waiting for a connection to",TCP_IP,"at",TCP_PORT,"...\033[40m\033[0m")
+print("\n"+str(datetime.datetime.now()),"\033[40m\033[1;34m[*]Waiting for a connection to SPYthon at ",TCP_IP,"at",TCP_PORT,"...\033[40m\033[0m")
+
+web_dir = os.path.join(os.path.dirname(__file__), 'web')                # Sets path to web server
+os.chdir(web_dir)                                                       # Changes to web server directory
+os.system("python3 -m http.server "+str(WEB_PORT)+" &")                 # Runs web server through os.system bc of threadding issue with running it in script
+
+# Print Status of the web connection with start datetime and server IP and Port Info
+print(str(datetime.datetime.now()),"\033[40m\033[1;34m[*]Waiting for a connection to Web Server at ",TCP_IP,"at",WEB_PORT,"...\033[40m\033[0m")                                                # Serves Web Server Forever
 
 while True:                                                             # Created an infinite while loop
     tcpServer.listen(4)                                                 # Start server Listener     # Output server status with IP and Port
