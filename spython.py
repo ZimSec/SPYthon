@@ -3,7 +3,7 @@ from threading import Thread                                            # Import
 from socketserver import ThreadingMixIn                                 # Import socketserver from threadingmixin
 import pyinputplus as pp                                                # Import pyinputplus for validation
 import datetime                                                         # Imports date time for status updates
-import nmap3                                                            # This is for scannign through nmap
+import nmap3                                                            # This is for scanning through nmap
 import os                                                               # Imports OS for cd and command execution
 import json                                                             # For formatting json
 from shodan import Shodan                                               # For passive scanning through Shodan
@@ -70,12 +70,12 @@ class ClientThread(Thread):                                             # Create
         self.port = port                                                # Store client port
         # Prints new socket info with date time and client IP's
         print(datetime.datetime.now(),"\033[40m\033[1;32m[+] New socket started for " + ip + ":" + str(port),"\033[40m\033[0m")
-    def run(self):                                                      # What is sent to or recived from the client
+    def run(self):                                                      # What is sent to or received from the client
         while True:                                                     # While loop to make the session until close
             s.send(asciiart)                                            # Prints Ascii Art
             # Sends data asking for the client to give an IP to scan
             s.send(bytes("\n Hello "+ip+"!\n"+"What would you like to scan?: ", 'utf-8'))
-            result=s.recv(SOCKET_BUFFER_SIZE)                           # Recieves user's data and stores it
+            result=s.recv(SOCKET_BUFFER_SIZE)                           # Receives user's data and stores it
             UserIn = str(result.decode('utf-8').rstrip("\n"))           # Formats user's sent data
             # Prints status of scan starting with datetime
             print(datetime.datetime.now(),"\033[40m\033[1;33m[*] Active Scan of",str(UserIn),"started for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
@@ -102,6 +102,7 @@ class ClientThread(Thread):                                             # Create
             f.close()                                                   # Close File
             passiveURL = "http://"+str(TCP_IP)+":"+str(WEB_PORT)+"/"+str(activeScan)+"/"                                                # Close File
             HTMLFile = "Report-"+datetime.datetime.now().strftime("%Y%m%d%H%M")+"-"+str(UserIn)+".html"
+            location = str(passiveOut["city"])+", "+str(passiveOut["region_code"])+" "+str(passiveOut["country_name"])
             html = f'''
             <!DOCTYPE html>
             <html class="no-js" lang="en">
@@ -168,7 +169,7 @@ class ClientThread(Thread):                                             # Create
 
                 <!-- home
                 ================================================== -->
-                <section id="home" class="s-home target-section" data-parallax="scroll" data-image-src="images/hero-bg.jpg" data-natural-width="3000" data-natural-height="2000">
+                <section id="home" class="s-home target-section" data-parallax="scroll" data-image-src="images/bg.jpg" data-natural-width="3000" data-natural-height="2000">
 
                     <div class="s-home__content">
 
@@ -224,7 +225,10 @@ class ClientThread(Thread):                                             # Create
 
                         <div class="column large-8 medium-12 align-x-right" data-aos="fade-up">
                             <p class="lead">
-                            Shodan Summary Goes Here
+                            The IP:         {str(passiveOut["ip_str"])}<br>
+                            The Org:        {str(passiveOut["org"])}<br>
+                            The Location:   {str(passiveOut["city"])+", "+str(passiveOut["region_code"])+" "+str(passiveOut["country_name"])}<br>
+                            Available Ports: {str(passiveOut["ports"])}
                             </p>
                         </div>
                     </div> <!-- end section-head -->
@@ -426,7 +430,7 @@ class ClientThread(Thread):                                             # Create
             break                                                       # Break the loop
 
 # TCP_IP = "0.0.0.0"                                                    # Hardcoded IP to host server on all nics
-# TCP_PORT = 1337                                                       # Harded port 1337
+# TCP_PORT = 1337                                                       # Hardcoded port 1337
 SOCKET_BUFFER_SIZE = 4096                                               # Set socket buffer size
 
 TCP_IP = pp.inputIP("Enter the SPYthon IP address: ")                    # Obtain and sanitize for the IP
@@ -444,7 +448,7 @@ print("\n"+str(datetime.datetime.now()),"\033[40m\033[1;34m[*]Waiting for a conn
 
 web_dir = os.path.join(os.path.dirname(__file__), 'web')                # Sets path to web server
 os.chdir(web_dir)                                                       # Changes to web server directory
-os.system("python3 -m http.server "+str(WEB_PORT)+" &")                 # Runs web server through os.system bc of threadding issue with running it in script
+os.system("python3 -m http.server "+str(WEB_PORT)+" &")                 # Runs web server through os.system bc of threading issue with running it in script
 
 # Print Status of the web connection with start datetime and server IP and Port Info
 print(str(datetime.datetime.now()),"\033[40m\033[1;34m[*]Waiting for a connection to Web Server at ",TCP_IP,"at",WEB_PORT,"...\033[40m\033[0m")                                                # Serves Web Server Forever
@@ -457,4 +461,7 @@ while True:                                                             # Create
     threads.append(newthread)                                           # Add new thread to list of threads
 
 for t in threads:                                                       # for loop of number of given number threads
-    t.join()                                                            # join new thread, this is how multi threadding is done
+    t.join()                                                            # join new thread, this is how multi threading is done
+
+
+#{jsonPassive["ip_str"]}
