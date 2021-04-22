@@ -224,10 +224,7 @@ class ClientThread(Thread):                                             # Create
 
                         <div class="column large-8 medium-12 align-x-right" data-aos="fade-up">
                             <p class="lead">
-                            At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis
-                            praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias
-                            excepturi sint occaecati cupiditate. At vero eos et accusamus et iusto odio
-                            dignissimos ducimus qui blanditiis praesentium.
+                            Shodan Summary Goes Here
                             </p>
                         </div>
                     </div> <!-- end section-head -->
