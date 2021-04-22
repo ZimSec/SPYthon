@@ -112,32 +112,38 @@ class ClientThread(Thread):                                             # Create
 # TCP_PORT = 1337                                                       # Harded port 1337
 SOCKET_BUFFER_SIZE = 4096                                               # Set socket buffer size
 
-TCP_IP = pp.inputIP("Enter the SPYthon IP address: ")                    # Obtain and sanitize for the IP
-TCP_PORT = pp.inputNum(prompt='Enter the SPYthon server port: ', min=1, max=65353)  # Obtain and sanitize for Server port
-WEB_PORT = pp.inputNum(prompt='Enter the web server port: ', min=1, max=65353)      # Obtain and sanitize for Web Port
-SHODAN_API_KEY = pp.inputStr(prompt='Enter Your SHODAN API KEY: ')      # Obtain Shodan Key
+try:
+	TCP_IP = pp.inputIP("Enter the SPYthon IP address: ")                    # Obtain and sanitize for the IP
+	TCP_PORT = pp.inputNum(prompt='Enter the SPYthon server port: ', min=1, max=65353)  # Obtain and sanitize for Server port
+	WEB_PORT = pp.inputNum(prompt='Enter the web server port: ', min=1, max=65353)      # Obtain and sanitize for Web Port
+	SHODAN_API_KEY = pp.inputStr(prompt='Enter Your SHODAN API KEY: ')      # Obtain Shodan Key
 
-tcpServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)           # Creating the socket
-tcpServer.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)         # Set Socket
-tcpServer.bind((TCP_IP, TCP_PORT))                                      # Bind the server port and IP
-threads = []                                                            # Create a list of threads
+	tcpServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)           # Creating the socket
+	tcpServer.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)         # Set Socket
+	tcpServer.bind((TCP_IP, TCP_PORT))                                      # Bind the server port and IP
+	threads = []                                                            # Create a list of threads
 
-# Print Status of the connection with start datetime and server IP and Port Info
-print("\n"+str(datetime.datetime.now()),"\033[40m\033[1;34m[*]Waiting for a connection to SPYthon at ",TCP_IP,"at",TCP_PORT,"...\033[40m\033[0m")
+	# Print Status of the connection with start datetime and server IP and Port Info
+	print("\n"+str(datetime.datetime.now()),"\033[40m\033[1;34m[*]Waiting for a connection to SPYthon at ",TCP_IP,"at",TCP_PORT,"...\033[40m\033[0m")
 
-web_dir = os.path.join(os.path.dirname(__file__), 'web')                # Sets path to web server
-os.chdir(web_dir)                                                       # Changes to web server directory
-os.system("python3 -m http.server "+str(WEB_PORT)+" &")                 # Runs web server through os.system bc of threadding issue with running it in script
+	web_dir = os.path.join(os.path.dirname(__file__), 'web')                # Sets path to web server
+	os.chdir(web_dir)                                                       # Changes to web server directory
+	os.system("python3 -m http.server "+str(WEB_PORT)+" &")                 # Runs web server through os.system bc of threadding issue with running it in script
 
-# Print Status of the web connection with start datetime and server IP and Port Info
-print(str(datetime.datetime.now()),"\033[40m\033[1;34m[*]Waiting for a connection to Web Server at ",TCP_IP,"at",WEB_PORT,"...\033[40m\033[0m")                                                # Serves Web Server Forever
+	# Print Status of the web connection with start datetime and server IP and Port Info
+	print(str(datetime.datetime.now()),"\033[40m\033[1;34m[*]Waiting for a connection to Web Server at ",TCP_IP,"at",WEB_PORT,"...\033[40m\033[0m")                                                # Serves Web Server Forever
 
-while True:                                                             # Created an infinite while loop
-    tcpServer.listen(4)                                                 # Start server Listener     # Output server status with IP and Port
-    (s, (ip,port)) = tcpServer.accept()                                 # Accept a new client
-    newthread = ClientThread(ip,port)                                   # Create a new thread
-    newthread.start()                                                   # Start new thread
-    threads.append(newthread)                                           # Add new thread to list of threads
+	while True:                                                             # Created an infinite while loop
+    		tcpServer.listen(4)                                                 # Start server Listener     # Output server status with IP and Port
+    		(s, (ip,port)) = tcpServer.accept()                                 # Accept a new client
+    		newthread = ClientThread(ip,port)                                   # Create a new thread
+    		newthread.start()                                                   # Start new thread
+    		threads.append(newthread)                                           # Add new thread to list of threads
 
-for t in threads:                                                       # for loop of number of given number threads
-    t.join()                                                            # join new thread, this is how multi threadding is done
+	for t in threads:                                                       # for loop of number of given number threads
+    		t.join()                                                            # join new thread, this is how multi threadding is done
+
+	os.system('killall -9 Python')
+
+except KeyboardInterrupt:
+	os.system('killall -9 Python')
