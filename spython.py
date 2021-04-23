@@ -8,6 +8,7 @@ import os                                                               # Import
 import json                                                             # For formatting json
 from shodan import Shodan                                               # For passive scanning through Shodan
 import requests
+import sys
 
 # SPYython Ascii Art
 asciiart=b"""
@@ -96,6 +97,19 @@ class ClientThread(Thread):                                             # Create
             passiveOut = api.host(UserIn)                               # Run the shodan scan
             print(datetime.datetime.now(),"\033[40m\033[1;33m[+] Passive Scan of",str(UserIn)," finished for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
             jsonPassive = json.dumps(passiveOut, indent = 4)            # Format json objects from Shodan Output
+            
+            bucket = ""
+
+            dataOut = passiveOut['data']
+            for i in range(len(dataOut)):
+                bucket=bucket + str(dataOut[i]['data'])
+
+            print(bucket)
+            
+            f = open("bucket.txt", "w")
+            f.write(bucket)
+            f.close()
+            
             # Sets file for passive scan
             passiveScan = "ScanOutput-"+datetime.datetime.now().strftime("%Y%m%d%H%M%S")+"-Passive_Scan-"+str(UserIn)+".json"
             f = open(passiveScan, "w")                                  # Open new text file for passive scan
@@ -245,20 +259,34 @@ class ClientThread(Thread):                                             # Create
                             <p class="lead">
                             The IP:         {str(passiveOut["ip_str"])}<br>
                             The Org:        {str(passiveOut["org"])}<br>
-                            The Location:   {str(passiveOut["city"])+", "+str(passiveOut["region_code"])+" "+str(passiveOut["country_name"])}<br>
-                            <iframe
-                              width="1000"
-                              height="1000"
-                              style="border:0"
-                              loading="lazy"
-                              allowfullscreen
-                              src="https://www.google.com/maps/embed/v1/place?key={str(GMAPS_API_KEY)}
-                                &q={city}">
-                            </iframe><br>
-                            Available Ports: {str(passiveOut["ports"])}
+                            The Location:   {str(passiveOut["city"])+", "+str(passiveOut["region_code"])+", "+str(passiveOut["country_name"])}<br>
+                            Available Ports: {str(passiveOut["ports"])}<br>
+                            ISP:            {str(passiveOut["isp"])}<br>
+                            
+                            <object data="bucket.txt" type="text/plain"
+                            width="1000" style="height:1000px;background-color:white;font-size:300%">
+                            <a href="bucket.txt">No Support?</a>
+                            </object>
+                            
                             </p>
                         </div>
                     </div> <!-- end section-head -->
+                    
+                    <div class="column large-8 medium-12 align-x-right" data-aos="fade-up">
+                        <iframe
+                            width="1000"
+                            height="1000"
+                            style="border:0"
+                            loading="lazy"
+                            allowfullscreen
+                            src="https://www.google.com/maps/embed/v1/place?key={str(GMAPS_API_KEY)}&q={city}&zoom=15">
+                            </iframe><br>
+                            
+                            
+                        
+                            
+                    </div> <!-- end section-head -->
+                    
 
                     <div class="row block-large-1-3 block-medium-1-2 block-tab-full services-list">
 
@@ -449,7 +477,7 @@ class ClientThread(Thread):                                             # Create
             f.write(html)                                   # Write text file from json_object
             f.close()
             s.send(bytes("Report Generated at: "+"http://"+str(TCP_IP)+":"+str(WEB_PORT)+"/"+str(HTMLFile)+"\n", 'utf-8'))
-            s.send(bytes("For approximate map location, click here:"+str(map_loc_img_url)+"\n", 'utf-8'))
+            #s.send(bytes("For approximate map location, click here:"+str(map_loc_img_url)+"\n", 'utf-8'))
             # Prints status of finished scan
             print(datetime.datetime.now(),"\033[40m\033[1;33m[+] Scan of",UserIn," saved to file and link was sent to client " + ip + ":" + str(port),"\033[40m\033[0m")
             s.close()                                                   # Close connection
