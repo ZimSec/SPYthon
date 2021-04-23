@@ -3,7 +3,6 @@ from threading import Thread                                            # Import
 from socketserver import ThreadingMixIn                                 # Import socketserver from threadingmixin
 import pyinputplus as pp                                                # Import pyinputplus for validation
 import datetime                                                         # Imports date time for status updates
-import nmap3                                                            # This is for scanning through nmap
 import os                                                               # Imports OS for cd and command execution
 import json                                                             # For formatting json
 from shodan import Shodan                                               # For passive scanning through Shodan
@@ -77,18 +76,7 @@ class ClientThread(Thread):                                             # Create
             s.send(bytes("\n Hello "+ip+"!\n"+"What would you like to scan?: ", 'utf-8'))
             result=s.recv(SOCKET_BUFFER_SIZE)                           # Receives user's data and stores it
             UserIn = str(result.decode('utf-8').rstrip("\n"))           # Formats user's sent data
-            # Prints status of scan starting with datetime
-            print(datetime.datetime.now(),"\033[40m\033[1;33m[*] Active Scan of",str(UserIn),"started for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
-            nm = nmap3.Nmap()                                           # Sets nm = to the nmap function
-            nmapDict = nm.scan_top_ports(UserIn)
-            print(datetime.datetime.now(),"\033[40m\033[1;33m[+] Active Scan of",str(UserIn)," finished for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
-            jsonActive = json.dumps(nmapDict, indent = 4)              # Format json objects from nmapDict
-            # Sets file for active scan
-            activeScan = "ScanOutput-"+datetime.datetime.now().strftime("%Y%m%d%H%M%S")+"-Active_Scan-"+str(UserIn)+".json"
-            f = open(activeScan, "w")                                   # Open new text file for active scan
-            f.write(str(jsonActive))                                   # Write text file from json_object
-            f.close()
-            activeURL = "http://"+str(TCP_IP)+":"+str(WEB_PORT)+"/"+str(activeScan)+"/"                                                # Close File
+            # Prints status of scan starting with datetime                                              # Close File
 
             print(datetime.datetime.now(),"\033[40m\033[1;33m[*] Passive Scan of",str(UserIn),"started for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
             api = Shodan(SHODAN_API_KEY)                                # Set api key
@@ -100,9 +88,26 @@ class ClientThread(Thread):                                             # Create
             f = open(passiveScan, "w")                                  # Open new text file for passive scan
             f.write(str(jsonPassive))                                   # Write text file from json_object
             f.close()                                                   # Close File
-            passiveURL = "http://"+str(TCP_IP)+":"+str(WEB_PORT)+"/"+str(activeScan)+"/"                                                # Close File
             HTMLFile = "Report-"+datetime.datetime.now().strftime("%Y%m%d%H%M")+"-"+str(UserIn)+".html"
             location = str(passiveOut["city"])+", "+str(passiveOut["region_code"])+" "+str(passiveOut["country_name"])
+            whois = os.popen(f'whois {UserIn}').read().replace('\n', '<br>')
+            print(datetime.datetime.now(),"\033[40m\033[1;33m[*] Active Scan of",str(UserIn),"started for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
+            services = os.popen(f'nmap -sV {UserIn}').read().replace('\n', '<br>')
+            print(datetime.datetime.now(),"\033[40m\033[1;33m[+] Active Scan of",str(UserIn)," finished for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
+            print(datetime.datetime.now(),"\033[40m\033[1;33m[*] VirusTotal of",str(UserIn),"started for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
+            virustotal = os.popen(f"curl --request GET --url 'https://www.virustotal.com/vtapi/v2/url/report?apikey={VIRUSTOTAL_API_KEY}&resource={UserIn}'").read().replace('\n', '<br>')
+            print(datetime.datetime.now(),"\033[40m\033[1;33m[+] VirusTotal of",str(UserIn)," finished for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
+            shodanDump = ""
+            dataOut = passiveOut['data']
+            for i in range(len(dataOut)):
+                shodanDump=shodanDump + str(dataOut[i]['data'])
+            shodanDump = shodanDump.replace('\n', '<br>')
+            print(datetime.datetime.now(),"\033[40m\033[1;33m[*] Dig of",str(UserIn),"started for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
+            dig = os.popen(f'dig -x {UserIn}').read().replace('\n', '<br>')
+            print(datetime.datetime.now(),"\033[40m\033[1;33m[*] Dig of",str(UserIn),"finished for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
+            print(datetime.datetime.now(),"\033[40m\033[1;33m[*] Traceroute of",str(UserIn),"started for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
+            traceroute = os.popen(f'traceroute -m 6 {UserIn}').read().replace('\n', '<br>')
+            print(datetime.datetime.now(),"\033[40m\033[1;33m[*] Traceroute of",str(UserIn),"finished for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
             html = f'''
             <!DOCTYPE html>
             <html class="no-js" lang="en">
@@ -236,67 +241,44 @@ class ClientThread(Thread):                                             # Create
                     <div class="row block-large-1-3 block-medium-1-2 block-tab-full services-list">
 
                         <div class="column services-item" data-aos="fade-up">
-                            <h5>Branding</h5>
+                            <h5>Whois</h5>
                             <p>
-                            Ea sint cum. Ullam consectetur nostrum
-                            voluptatem fugiat et dolor non totam sed. Et quia sit aliquam et.
-                            Voluptatibus sit facere aperiam tempore est nam et cupiditate. Necessitatibus
-                            nisi dolorem enim sit aut earum et praesentium. Impedit recusandae consequatur
-                            beatae deleniti impedit non et. Eos consequuntur alias. Rerum sit est est
-                            tenetur soluta.
+                            {whois}
                             </p>
                         </div> <!-- end services-item -->
 
                         <div class="column services-item" data-aos="fade-up">
-                            <h5>Product Design</h5>
+                            <h5>Nmap Service Scan</h5>
                             <p>
-                            In aspernatur autem enim maxime mollitia. Debitis rerum alias. Facilis qui est qui
-                            impedit. Dolorum fuga provident. Debitis eum non odit facilis ut quibusdam porro
-                            ipsa. Optio aut similique vero dolore sunt laudantium et autem quo. Earum eligendi dolorem
-                            aut quae modi. Cumque impedit voluptatem molestiae a. Perspiciatis at tempora
-                            dicta molestiae iure dolore.
+                            {services}
                             </p>
                         </div> <!-- end services-item -->
 
                         <div class="column services-item" data-aos="fade-up">
-                            <h5>UX Research</h5>
+                            <h5>Shodan Report</h5>
                             <p>
-                            Repellat commodi numquam hic odit voluptatem saepe praesentium. Delectus itaque nemo
-                            aut ipsam similique et veniam. Assumenda rerum ut ea soluta distinctio beatae consectetur
-                            omnis libero. Ratione ipsum sapiente suscipit. Dolorem id doloremque. Nihil cupiditate
-                            sed molestiae quia dolorem sit iure doloremque. Rerum ea officia pariatur.
+                            {shodanDump}
                             </p>
                         </div> <!-- end services-item -->
 
                         <div class="column services-item" data-aos="fade-up">
-                            <h5>Frontend Development</h5>
+                            <h5>Virustotal Report</h5>
                             <p>
-                            Ea sint cum. Ullam consectetur nostrum
-                            voluptatem fugiat et dolor non totam sed. Et quia sit aliquam et.
-                            Voluptatibus sit facere aperiam tempore est nam et cupiditate. Necessitatibus
-                            nisi dolorem enim sit aut earum et praesentium. Impedit recusandae consequatur
-                            beatae deleniti impedit non et. Eos consequuntur alias. Rerum sit est est
-                            tenetur soluta.
+                            {virustotal}
                             </p>
                         </div> <!-- end services-item -->
 
                         <div class="column services-item" data-aos="fade-up">
-                            <h5>E-Commerce</h5>
+                            <h5>Dig</h5>
                             <p>
-                            Dolorem fugit similique. In sed expedita consequuntur quos dolor eos iusto. Quisquam sint harum nam aut.
-                            Fuga aspernatur dolor est. Aliquid odit nostrum et eum reiciendis fugit est consequatur. Rerum eaque
-                            eligendi doloribus quidem iure error voluptatem velit. Veritatis molestiae fuga. Voluptatem
-                            odit voluptatem doloremque nobis. Non hic ipsa illum.
+                            {dig}
                             </p>
                         </div> <!-- end services-item -->
 
                         <div class="column services-item" data-aos="fade-up">
-                            <h5>Illustration</h5>
+                            <h5>Traceroute</h5>
                             <p>
-                            Est nesciunt et rerum sapiente. Ullam impedit labore magni qui. Consequuntur fugiat vel id explicabo.
-                            Inventore suscipit sint totam accusamus aperiam distinctio. Rerum nihil maxime non maiores. Praesentium modi facilis ex.
-                            Velit officiis id. Voluptates id cupiditate sit eligendi at nemo rerum rem non. Quae rem quia dignissimos ex
-                            laudantium distinctio ipsam.
+                            {traceroute}
                             </p>
                         </div> <!-- end services-item -->
 
@@ -437,6 +419,7 @@ TCP_IP = pp.inputIP("Enter the SPYthon IP address: ")                    # Obtai
 TCP_PORT = pp.inputNum(prompt='Enter the SPYthon server port: ', min=1, max=65353)  # Obtain and sanitize for Server port
 WEB_PORT = pp.inputNum(prompt='Enter the web server port: ', min=1, max=65353)      # Obtain and sanitize for Web Port
 SHODAN_API_KEY = pp.inputStr(prompt='Enter Your SHODAN API KEY: ')      # Obtain Shodan Key
+VIRUSTOTAL_API_KEY = pp.inputStr("Enter your VirusTotal API KEY: ")
 
 tcpServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)           # Creating the socket
 tcpServer.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)         # Set Socket
@@ -462,6 +445,3 @@ while True:                                                             # Create
 
 for t in threads:                                                       # for loop of number of given number threads
     t.join()                                                            # join new thread, this is how multi threading is done
-
-
-#{jsonPassive["ip_str"]}
