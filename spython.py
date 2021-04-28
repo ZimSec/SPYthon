@@ -493,9 +493,9 @@ try:
     TCP_IP = "127.0.0.1" #pp.inputIP("Enter the SPYthon IP address: ")                    # Obtain and sanitize for the IP
     TCP_PORT = 8899 #pp.inputNum(prompt='Enter the SPYthon server port: ', min=1, max=65353)  # Obtain and sanitize for Server port
     WEB_PORT = 7788 #pp.inputNum(prompt='Enter the web server port: ', min=1, max=65353)      # Obtain and sanitize for Web Port
-    SHODAN_API_KEY = "Tsn5hGa89Csne7ZuEvz8nPUk5b5iykJJ" #pp.inputStr(prompt='Enter Your SHODAN API KEY: ')      # Obtain Shodan Key
+    SHODAN_API_KEY = pp.inputStr(prompt='Enter Your SHODAN API KEY: ')      # Obtain Shodan Key
     
-    GMAPS_API_KEY = "AIzaSyDOFwKpfezE3YxlhkaZ2DxYVGC32y7Ifak" #pp.inputStr(prompt='Enter Your GOOGLE MAPS API KEY: ') #Google Maps Static API Key
+    GMAPS_API_KEY = pp.inputStr(prompt='Enter Your GOOGLE MAPS API KEY: ') #Google Maps Static API Key
 
     tcpServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)           # Creating the socket
     tcpServer.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)         # Set Socket
