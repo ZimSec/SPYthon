@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/var/www/argusio/flaskspython.py", line 375, in <module>
+    tcpServer.bind((TCP_IP, TCP_PORT))                                      # Bind the server port and IP
+OSError: [Errno 98] Address already in use
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100  5799  100  5799    0     0  37655      0 --:--:-- --:--:-- --:--:-- 37901

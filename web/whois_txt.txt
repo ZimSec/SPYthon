@@ -1,0 +1,73 @@
+
+#
+# ARIN WHOIS data and services are subject to the Terms of Use
+# available at: https://www.arin.net/resources/registry/whois/tou/
+#
+# If you see inaccuracies in the results, please report at
+# https://www.arin.net/resources/registry/whois/inaccuracy_reporting/
+#
+# Copyright 1997-2021, American Registry for Internet Numbers, Ltd.
+#
+
+
+NetRange:       23.32.0.0 - 23.67.255.255
+CIDR:           23.32.0.0/11, 23.64.0.0/14
+NetName:        AKAMAI
+NetHandle:      NET-23-32-0-0-1
+Parent:         NET23 (NET-23-0-0-0-0)
+NetType:        Direct Allocation
+OriginAS:       
+Organization:   Akamai Technologies, Inc. (AKAMAI)
+RegDate:        2011-05-16
+Updated:        2012-03-02
+Ref:            https://rdap.arin.net/registry/ip/23.32.0.0
+
+
+
+OrgName:        Akamai Technologies, Inc.
+OrgId:          AKAMAI
+Address:        145 Broadway
+City:           Cambridge
+StateProv:      MA
+PostalCode:     02142
+Country:        US
+RegDate:        1999-01-21
+Updated:        2020-08-26
+Ref:            https://rdap.arin.net/registry/entity/AKAMAI
+
+
+OrgTechHandle: SJS98-ARIN
+OrgTechName:   Schecter, Steven Jay
+OrgTechPhone:  +1-617-274-7134 
+OrgTechEmail:  ip-admin@akamai.com
+OrgTechRef:    https://rdap.arin.net/registry/entity/SJS98-ARIN
+
+OrgAbuseHandle: NUS-ARIN
+OrgAbuseName:   NOC United States
+OrgAbusePhone:  +1-617-444-2535 
+OrgAbuseEmail:  abuse@akamai.com
+OrgAbuseRef:    https://rdap.arin.net/registry/entity/NUS-ARIN
+
+OrgTechHandle: IPADM11-ARIN
+OrgTechName:   ipadmin
+OrgTechPhone:  +1-617-444-0017 
+OrgTechEmail:  ip-admin@akamai.com
+OrgTechRef:    https://rdap.arin.net/registry/entity/IPADM11-ARIN
+
+OrgTechHandle: YKS-ARIN
+OrgTechName:   Yeung, Kam Sze 
+OrgTechPhone:  +852-92813828 
+OrgTechEmail:  ip-admin@akamai.com
+OrgTechRef:    https://rdap.arin.net/registry/entity/YKS-ARIN
+
+
+#
+# ARIN WHOIS data and services are subject to the Terms of Use
+# available at: https://www.arin.net/resources/registry/whois/tou/
+#
+# If you see inaccuracies in the results, please report at
+# https://www.arin.net/resources/registry/whois/inaccuracy_reporting/
+#
+# Copyright 1997-2021, American Registry for Internet Numbers, Ltd.
+#
+

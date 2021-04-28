@@ -1,0 +1,20 @@
+
+; <<>> DiG 9.16.1-Ubuntu <<>> -x 23.32.174.249
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 10849
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 65494
+;; QUESTION SECTION:
+;249.174.32.23.in-addr.arpa.	IN	PTR
+
+;; ANSWER SECTION:
+249.174.32.23.in-addr.arpa. 7183 IN	PTR	a23-32-174-249.deploy.static.akamaitechnologies.com.
+
+;; Query time: 4 msec
+;; SERVER: 127.0.0.53#53(127.0.0.53)
+;; WHEN: Wed Apr 28 14:51:56 UTC 2021
+;; MSG SIZE  rcvd: 120
+
