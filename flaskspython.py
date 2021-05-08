@@ -7,7 +7,8 @@ import datetime                                                         # Import
 import os                                                               # Imports OS for cd and command execution
 import json                                                             # For formatting json
 from shodan import Shodan                                               # For passive scanning through Shodan
-
+import nmap3
+import sys
 
 
 class ClientThread(Thread):                                             # Create Client
@@ -26,9 +27,33 @@ class ClientThread(Thread):                                             # Create
             getdata = str(result.decode('utf-8').rstrip("\n")).split()           # Formats user's sent data
             #print(getdata)
             #print(getdata[0], getdata[1], fetdata[2])
+            host_ip = getdata[0]
             UserIn = socket.gethostbyname(getdata[0])
             SHODAN_API_KEY = getdata[1]
             VIRUSTOTAL_API_KEY = getdata[2]
+            #GMAPS_API_KEY = getdata[3]
+            #print(UserIn)
+            nmap_data = nmap3.Nmap()
+            nmap_data_res = nmap_data.scan_top_ports(f"{UserIn}", args="--script nmap-vulners,vulscan --script-args vulscandb=scipvuldb.csv -sV -p-")
+            cve_file = open('cvescan.txt', 'w')
+            cve_file.write('*'*50)
+            cve_file.write('\nCVE Report (Sources: Nmap, Vulners)\n')
+            for n in nmap_data_res[str(UserIn)]['ports']:
+                cve_file.write('--'*50)
+                cve_file.write('\n')
+                cve_file.write('Port Number: {}\n'.format(n.get('portid')))
+                cve_file.write('State: {}\n'.format(n.get('state')))
+                cve_file.write('Service: {}\n'.format(n.get('service').get('name')))
+                cve_file.write('Product: {}\n'.format(n.get('service').get('product')))
+                cve_file.write('Service Verison: {}\n'.format(n.get('service').get('version')))
+                cve_file.write('Operating System: {}\n'.format(n.get('service').get('ostype')))
+                cve_file.write('\n')
+                for j in n['scripts']:
+                    cve_file.write('CVE Data: \n{}\n'.format(j.get('raw')))
+                    cve_file.write('\n')
+            cve_file.write('\n')
+            cve_file.write('*'*50)
+            cve_file.close()
             print(datetime.datetime.now(),"\033[40m\033[1;33m[*] Passive Scan of",str(UserIn),"started for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
             api = Shodan(SHODAN_API_KEY)                                # Set api key
             passiveOut = api.host(UserIn)                               # Run the shodan scan
@@ -45,10 +70,11 @@ class ClientThread(Thread):                                             # Create
             whois = os.popen(f'whois {UserIn}').read()
             print(datetime.datetime.now(),"\033[40m\033[1;33m[*] Active Scan of",str(UserIn),"started for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
             #services = os.popen(f'nmap -sV {UserIn}').read().replace('\n', '<br>')
-            services = os.popen(f'nmap -sV {UserIn}').read()
+            services = os.popen(f'nmap -sV -p- {UserIn}').read()
             print(datetime.datetime.now(),"\033[40m\033[1;33m[+] Active Scan of",str(UserIn)," finished for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
             print(datetime.datetime.now(),"\033[40m\033[1;33m[*] VirusTotal of",str(UserIn),"started for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
             virustotal = os.popen(f"curl --request GET --url 'https://www.virustotal.com/vtapi/v2/url/report?apikey={VIRUSTOTAL_API_KEY}&resource={UserIn}'").read() #.replace('\n', '<br>')
+            v_res = json.loads(virustotal)
             print(datetime.datetime.now(),"\033[40m\033[1;33m[+] VirusTotal of",str(UserIn)," finished for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
             shodanDump = ""
             dataOut = passiveOut['data']
@@ -88,7 +114,14 @@ class ClientThread(Thread):                                             # Create
             #for n in range(len(virustotal)):
             virustotal_txt=virustotal_txt + str(virustotal)
             f = open("virustotal_txt.txt", "w")
-            f.write(virustotal_txt)
+            if v_res.get('verbose_msg') in "Resource does not exist in the dataset":
+                f.write("Result: {}\n".format(v_res.get('verbose_msg')))
+                f.write('\n')
+                f.write("The site is safe!")
+            elif v_res.get('verbose_msg') not in "Resource does not exist in the dataset":
+                f.write("Result: {}\n".format(v_res.get('verbose_msg')))
+                f.write('\n')
+                f.write("The site is not safe!")
             f.close()
             dig_txt = ""
             #for n in range(len(dig)):
@@ -102,6 +135,22 @@ class ClientThread(Thread):                                             # Create
             f = open("traceroute_txt.txt", "w")
             f.write(traceroute_txt)
             f.close()
+            #city = passiveOut['city']
+            #lat = passiveOut['latitude']
+            #long = passiveOut['longitude']
+            #formatted_city = city.replace(" ","%20")
+
+            #map_location = requests.post(f"https://maps.googleapis.com/maps/api/geocode/json?address={city}={lat},{long}&key={GMAPS_API_KEY}")
+
+            #zoom = 17
+            #static_map_url defines the base URL for google static maps
+            #static_map_url = "https://maps.googleapis.com/maps/api/staticmap?"
+            #format_img = "png"
+
+            #map_loc_img_url = (static_map_url + f"size=1000x1000&zoom={zoom}&center={formatted_city}&format={format_img}&style=feature:road.highway%7Celement:geometry%$
+            #map_loc_img_url = (static_map_url + f"size=1000x1000&zoom={zoom}&center={formatted_city}&format={format_img}&style=feature:road.highway%7Celement:geometry%7Cvisibility:simplified%7Ccolor:0xc280e9&style=feature:transit.line%7Cvisibility:simplified%7Ccolor:0xbababa&style=feature:road.highway%7Celement:labels.text.stroke%7Cvisibility:on%7Ccolor:0xb06eba&style=feature:road.highway%7Celement:labels.text.fill%7Cvisibility:on%7Ccolor:0xffffff&key=" + GMAPS_API_KEY)
+            #print("For approximate map location, click here:", map_loc_img_url)
+
             html = f'''
             <!DOCTYPE html>
             <html class="no-js" lang="en">
@@ -178,7 +227,7 @@ class ClientThread(Thread):                                             # Create
                                 <div class="row">
                                     <div class="column large-12 s-home__slide-text">
                                         <h2>
-                                        SPYthon Report of <span>{UserIn}</span>.
+                                        SPYthon Report of <span>{host_ip}</span>.
                                         </h2>
                                     </div>
                                 </div>
@@ -224,76 +273,86 @@ class ClientThread(Thread):                                             # Create
 
                         <div class="column large-8 medium-12 align-x-right" data-aos="fade-up">
                             <p class="lead">
-                            The IP:         {str(passiveOut["ip_str"])}<br>
-                            The Host/CDN Provider:        {str(passiveOut["org"])}<br>
-                            The Location:   {str(passiveOut["city"])+", "+str(passiveOut["region_code"])+" "+str(passiveOut["country_name"])}<br>
+                            IP Address:         {str(passiveOut["ip_str"])}<br>
+                            Host/CDN Provider:        {str(passiveOut["org"])}<br>
+                            Location:   {str(passiveOut["city"])+", "+str(passiveOut["region_code"])+" "+str(passiveOut["country_name"])}<br>
                             Available Ports: {str(passiveOut["ports"])}<br>
                         </div>
                     </div> <!-- end section-head -->
+		    <!-- <iframe src=""title="Google Maps Location"> -->
+                   <!-- <div class="row block-large-1-3 block-medium-1-2 block-tab-full services-list"> -->
+		    <div class="row block-large-1-3 block-medium-1-2 block-tab-full services-list">
+		        <div>
+                            <h5>CVE Vulnerability Data</h5>
+                            <p>
+                            <object data="cvescan.txt" type="text/plain"
+                            width="1000" style="height:400px;background-color:white;font-size:300%">
+                            <a href="cvescan.txt">No Support?</a>
+                            </object>
+                            </p>
+                        </div> <!-- end services-item -->
 
-                    <div class="row block-large-1-3 block-medium-1-2 block-tab-full services-list">
-
-                        <div celass="column services-item" data-aos="fade-up">
+                        <div>
                             <h5>Whois</h5>
                             <p>
                             <!-- {whois} -->
 			    <object data="whois_txt.txt" type="text/plain"
-                            width="600" style="height:400px;background-color:white;font-size:300%">
+                            width="1000" style="height:400px;background-color:white;font-size:300%">
                             <a href="whois_txt.txt">No Support?</a>
                             </object>
                             </p>
                         </div> <!-- end services-item -->
 
-                        <div class="column services-item" data-aos="fade-up">
+                        <div>
                             <h5>Nmap Service Scan</h5>
                             <p>
                             <!-- {services} -->
 			    <object data="services_txt.txt" type="text/plain"
-                            width="600" style="height:400px;background-color:white;font-size:300%">
+                            width="1000" style="height:300px;background-color:white;font-size:300%">
                             <a href="services_txt.txt">No Support?</a>
                             </object>
                             </p>
                         </div> <!-- end services-item -->
 
-                        <div class="column services-item" data-aos="fade-up">
+                        <div>
                             <h5>Shodan Report</h5>
                             <p>
                             <!-- {shodanDump} -->
 			    <object data="shodan_txt.txt" type="text/plain"
-                            width="600" style="height:400px;background-color:white;font-size:300%">
-                            <a href="bucket.txt">No Support?</a>
+                            width="1000" style="height:150px;background-color:white;font-size:300%">
+                            <a href="shodan_txt.txt">No Support?</a>
                             </object>
                             </p>
                         </div> <!-- end services-item -->
 
-                        <div class="column services-item" data-aos="fade-up">
+                        <div>
                             <h5>Virustotal Report</h5>
                             <p>
                             <!-- {virustotal} -->
                             <object data="virustotal_txt.txt" type="text/plain"
-                            width="600" style="height:400px;background-color:white;font-size:300%">
+                            width="1000" style="height:100px;background-color:white;font-size:300%">
                             <a href="virustotal_txt.txt">No Support?</a>
                             </object>
                             </p>
                         </div> <!-- end services-item -->
 
-                        <div class="column services-item" data-aos="fade-up">
+                        <div>
                             <h5>Dig</h5>
                             <p>
                             <!-- {dig} -->
 			    <object data="dig_txt.txt" type="text/plain"
-                            width="800" style="height:400px;background-color:white;font-size:300%">
+                            width="1000" style="height:300px;background-color:white;font-size:300%">
                             <a href="dig_txt.txt">No Support?</a>
                             </object>
                             </p>
                         </div> <!-- end services-item -->
 
-                        <div class="column services-item" data-aos="fade-up">
+                        <div>
                             <h5>Traceroute</h5>
                             <p>
                             <!-- {traceroute} -->
 			    <object data="traceroute_txt.txt" type="text/plain"
-                            width="600" style="height:400px;background-color:white;font-size:300%">
+                            width="1000" style="height:200px;background-color:white;font-size:300%">
                             <a href="traceroute_txt.txt">No Support?</a>
                             </object>
                             </p>
@@ -433,7 +492,7 @@ SOCKET_BUFFER_SIZE = 4096                                               # Set so
 
 TCP_IP = "127.0.0.1" #pp.inputIP("Enter the SPYthon IP address: ")                    # Obtain and sanitize for the IP
 TCP_PORT = 8899 #pp.inputNum(prompt='Enter the SPYthon server port: ', min=1, max=65353)  # Obtain and sanitize for Server port
-WEB_PORT = 45131 #pp.inputNum(prompt='Enter the web server port: ', min=1, max=65353)      # Obtain and sanitize for Web Port
+WEB_PORT = 52590 #pp.inputNum(prompt='Enter the web server port: ', min=1, max=65353)      # Obtain and sanitize for Web Port
 #SHODAN_API_KEY = #pp.inputStr(prompt='Enter Your SHODAN API KEY: ')      # Obtain Shodan Key
 #VIRUSTOTAL_API_KEY = #pp.inputStr("Enter your VirusTotal API KEY: ")
 
