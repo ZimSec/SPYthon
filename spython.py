@@ -79,15 +79,17 @@ class ClientThread(Thread):                                             # Create
             # Prints status of scan starting with datetime                                              # Close File
 
             print(datetime.datetime.now(),"\033[40m\033[1;33m[*] Passive Scan of",str(UserIn),"started for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
-            api = Shodan(SHODAN_API_KEY)                                # Set api key
-            passiveOut = api.host(UserIn)                               # Run the shodan scan
+            shodan_api = Shodan(SHODAN_API_KEY)                                # Set api key
+            passiveOut = shodan_api.host(UserIn)                               # Run the shodan scan
             print(datetime.datetime.now(),"\033[40m\033[1;33m[+] Passive Scan of",str(UserIn)," finished for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
             jsonPassive = json.dumps(passiveOut, indent = 4)            # Format json objects from Shodan Output
-            # Sets file for passive scan
-            passiveScan = "ScanOutput-"+datetime.datetime.now().strftime("%Y%m%d%H%M%S")+"-Passive_Scan-"+str(UserIn)+".json"
             f = open(passiveScan, "w")                                  # Open new text file for passive scan
             f.write(str(jsonPassive))                                   # Write text file from json_object
-            f.close()                                                   # Close File
+            f.close()
+
+            headers = { "x-api-key" : CRIMINALIP_API_KEY }
+            print(requests.get("https://api.criminalip.io/v1/ip/data?ip="+UserIn+"full=true", headers=headers, verify=False).text) # Criminalip Raw Data
+
             HTMLFile = "Report-"+datetime.datetime.now().strftime("%Y%m%d%H%M")+"-"+str(UserIn)+".html"
             location = str(passiveOut["city"])+", "+str(passiveOut["region_code"])+" "+str(passiveOut["country_name"])
             whois = os.popen(f'whois {UserIn}').read().replace('\n', '<br>')
@@ -102,6 +104,7 @@ class ClientThread(Thread):                                             # Create
             for i in range(len(dataOut)):
                 shodanDump=shodanDump + str(dataOut[i]['data'])
             shodanDump = shodanDump.replace('\n', '<br>')
+
             print(datetime.datetime.now(),"\033[40m\033[1;33m[*] Dig of",str(UserIn),"started for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
             dig = os.popen(f'dig -x {UserIn}').read().replace('\n', '<br>')
             print(datetime.datetime.now(),"\033[40m\033[1;33m[*] Dig of",str(UserIn),"finished for client " + str(ip) + ":" + str(port),"\033[40m\033[0m")
@@ -202,6 +205,19 @@ class ClientThread(Thread):                                             # Create
 
                         </div> <!-- end s-home__slider -->
 
+
+                            <div class="s-home__slide s-home__slide--3">
+                                <div class="row">
+                                    <div class="column large-12 s-home__slider-text">
+                                        <h2>
+                                        This report includes an executive summery of the all the data collected through <span>Nmap</span> Scans as well as the data from <span>Criminalip</span>.
+                                        </h2>
+                                    </div>
+                                </div>
+                            </div> <!-- end s-home__slide -->
+
+                        </div> <!-- end s-home__slider -->
+
                     </div> <!-- end s-home__content -->
 
                     <div class="s-home__nav-arrows">
@@ -251,6 +267,13 @@ class ClientThread(Thread):                                             # Create
                             <h5>Nmap Service Scan</h5>
                             <p>
                             {services}
+                            </p>
+                        </div> <!-- end services-item -->
+
+                        <div class="column services-item" data-aos="fade-up">
+                            <h5>Criminalip Report</h5>
+                            <p>
+                            {criminalipDump}
                             </p>
                         </div> <!-- end services-item -->
 
@@ -418,6 +441,7 @@ SOCKET_BUFFER_SIZE = 4096                                               # Set so
 TCP_IP = pp.inputIP("Enter the SPYthon IP address: ")                    # Obtain and sanitize for the IP
 TCP_PORT = pp.inputNum(prompt='Enter the SPYthon server port: ', min=1, max=65353)  # Obtain and sanitize for Server port
 WEB_PORT = pp.inputNum(prompt='Enter the web server port: ', min=1, max=65353)      # Obtain and sanitize for Web Port
+CRIMINALIP_API_KEY = pp.inputStr(prompt='Enter Your CRIMINALIP API KEY: ')      # Obtain Criminalip Key
 SHODAN_API_KEY = pp.inputStr(prompt='Enter Your SHODAN API KEY: ')      # Obtain Shodan Key
 VIRUSTOTAL_API_KEY = pp.inputStr("Enter your VirusTotal API KEY: ")
 
