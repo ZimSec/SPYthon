@@ -18,6 +18,10 @@ Python3 HTML: Report Generation\
 https://programminghistorian.org/en/lessons/output-data-as-html-file \
 https://plotly.com/python/v3/html-reports/
 
+Criminalip:\
+https://www.criminalip.io/developer/api/post-user-me (API List) \
+https://www.criminalip.io/mypage/information (API-Info)
+
 Censys:\
 By default, Censys performs full-text searches. For example, searching for “Dell” will find any hosts where the word Dell appears in the record—it won't limit the search to Dell manufactured devices. However, this is possible by querying specific fields using the syntax in the link below:\
 https://censys.io/ipv4/help?q=& \
